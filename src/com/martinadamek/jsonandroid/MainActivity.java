@@ -67,6 +67,20 @@ public class MainActivity extends Activity {
         textView.setText("jackson: " + (end - start) + "ms");
         layout.addView(textView, layoutParams);
 
+        // gson =========================================================================
+
+        inputStream = getClass().getClassLoader().getResourceAsStream(path);
+
+        start = System.currentTimeMillis();
+        result = GsonJson.parsePublicTimeline(inputStream);
+        end = System.currentTimeMillis();
+
+        verify(result);
+
+        textView = new TextView(this);
+        textView.setText("gson: " + (end - start) + "ms");
+        layout.addView(textView, layoutParams);
+
     }
 
     static void verify(List<Map> result) {

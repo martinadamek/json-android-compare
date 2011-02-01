@@ -47,7 +47,7 @@ public class JacksonJson {
                 result.add(map);
             }
 
-
+            p.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
