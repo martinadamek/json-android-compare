@@ -24,18 +24,22 @@ public class MainActivity extends Activity {
             final Map<String, Long> results = new HashMap<String, Long>();
 
             TestJson testJson = new AndroidJson();
+            warmUp(testJson);
             long duration = test(testJson);
             results.put(testJson.getName(), duration);
 
             testJson = new SimpleJson();
+            warmUp(testJson);
             duration = test(testJson);
             results.put(testJson.getName(), duration);
 
             testJson = new GsonJson();
+            warmUp(testJson);
             duration = test(testJson);
             results.put(testJson.getName(), duration);
 
             testJson = new JacksonJson();
+            warmUp(testJson);
             duration = test(testJson);
             results.put(testJson.getName(), duration);
 
@@ -78,7 +82,15 @@ public class MainActivity extends Activity {
 
     }
 
-    public long test(final TestJson testJson) {
+    private void warmUp(final TestJson testJson) {
+        InputStream inputStream;
+        for (int i = 0; i < 5; i++) {
+            inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+            testJson.parsePublicTimeline(inputStream);
+        }
+    }
+
+    private long test(final TestJson testJson) {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
 
         long start = System.currentTimeMillis();
