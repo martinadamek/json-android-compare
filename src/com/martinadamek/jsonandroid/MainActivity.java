@@ -6,9 +6,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MainActivity extends Activity {
 
@@ -23,34 +21,22 @@ public class MainActivity extends Activity {
 
             final Map<String, Long> results = new HashMap<String, Long>();
 
-            TestJson testJson = new AndroidJson();
-            warmUp(testJson);
-            long duration = test(testJson);
-            results.put(testJson.getName(), duration);
-
-            testJson = new SimpleJson();
-            warmUp(testJson);
-            duration = test(testJson);
-            results.put(testJson.getName(), duration);
-
-            testJson = new GsonJson();
-            warmUp(testJson);
-            duration = test(testJson);
-            results.put(testJson.getName(), duration);
-
-            testJson = new JacksonJson();
-            warmUp(testJson);
-            duration = test(testJson);
-            results.put(testJson.getName(), duration);
+            testImpl(new AndroidJson(), results);
+            testImpl(new SimpleJson(), results);
+            testImpl(new GsonJson(), results);
+            testImpl(new JacksonJson(), results);
 
             runOnUiThread(new Runnable() {
                 public void run() {
 
                     mLayout.removeAllViews();
 
-                    for (Map.Entry<String, Long> entry: results.entrySet()) {
+                    List<String> keys = new ArrayList<String>(results.keySet());
+                    Collections.sort(keys);
+
+                    for (String key: keys) {
                         TextView textView = new TextView(MainActivity.this);
-                        textView.setText(entry.getKey() + ": " + entry.getValue() + "ms");
+                        textView.setText(key + ": " + results.get(key) + "ms");
                         mLayout.addView(textView, mLayoutParams);
                     }
 
@@ -82,6 +68,16 @@ public class MainActivity extends Activity {
 
     }
 
+    private void testImpl(TestJson testJson, Map<String, Long> results) {
+        warmUp(testJson);
+        long duration = test(testJson, 1);
+        results.put("[1 run] " + testJson.getName(), duration);
+        duration = test(testJson, 5);
+        results.put("[5 runs] " + testJson.getName(), duration);
+        duration = test(testJson, 100);
+        results.put("[100 runs] " + testJson.getName(), duration);
+    }
+
     private void warmUp(final TestJson testJson) {
         InputStream inputStream;
         for (int i = 0; i < 5; i++) {
@@ -90,16 +86,22 @@ public class MainActivity extends Activity {
         }
     }
 
-    private long test(final TestJson testJson) {
+    private long test(final TestJson testJson, int repeats) {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
 
-        long start = System.currentTimeMillis();
         List<Map> result = testJson.parsePublicTimeline(inputStream);
-        long end = System.currentTimeMillis();
-
         verify(result);
 
-        return end - start;
+        long duration = 0;
+
+        for (int i = 0; i < repeats; i++) {
+            inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+            long start = System.currentTimeMillis();
+            testJson.parsePublicTimeline(inputStream);
+            duration += (System.currentTimeMillis() - start);
+        }
+
+        return duration;
     }
 
     private static void verify(List<Map> result) {
