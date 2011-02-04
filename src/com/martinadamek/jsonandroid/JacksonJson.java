@@ -11,15 +11,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JacksonJson {
+public class JacksonJson implements TestJson {
 
-    public static List<Map> parsePublicTimeline(InputStream inputStream) {
+    private static JsonFactory sJsonFactory = new JsonFactory();
+
+    public String getName() {
+        return "Jackson";
+    }
+
+    public List<Map> parsePublicTimeline(InputStream inputStream) {
 
         List<Map> result = new ArrayList<Map>();
 
-        JsonFactory f = new JsonFactory();
         try {
-            JsonParser p = f.createJsonParser(inputStream);
+            JsonParser p = sJsonFactory.createJsonParser(inputStream);
 
             p.nextToken();
 

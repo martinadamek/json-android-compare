@@ -2,21 +2,23 @@ package com.martinadamek.jsonandroid;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 
-public class AndroidJson {
+public class AndroidJson implements TestJson {
 
-    public static List<Map> parsePublicTimeline(InputStream inputStream) {
+    public String getName() {
+        return "Android";
+    }
+
+    public List<Map> parsePublicTimeline(InputStream inputStream) {
 
         List<Map> result = new ArrayList<Map>();
-        String json = convertStreamToString(inputStream);
 
         try {
+            String json = convertStreamToString(inputStream);
             JSONArray jsonArray = new JSONArray(json);
             int length = jsonArray.length();
 
@@ -47,32 +49,19 @@ public class AndroidJson {
         return result;
     }
 
-    // from http://senior.ceng.metu.edu.tr/2009/praeda/2009/01/11/a-simple-restful-client-at-android/
-    public static String convertStreamToString(InputStream is) {
-        /*
-         * To convert the InputStream to String we use the BufferedReader.readLine()
-         * method. We iterate until the BufferedReader return null which means
-         * there's no more data to read. Each line will appended to a StringBuilder
-         * and returned as String.
-         */
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-
-        String line = null;
+    private static String convertStreamToString(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        InputStream in = new BufferedInputStream(inputStream);
+        byte[] buffer = new byte[1024];
         try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
+            while (in.read(buffer) != -1) {
+                out.write(buffer);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            out.close();
+            in.close();
         }
-        return sb.toString();
+        return out.toString("UTF-8");
     }
 
 }

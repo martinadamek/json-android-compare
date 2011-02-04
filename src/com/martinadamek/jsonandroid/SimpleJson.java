@@ -8,10 +8,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
-public class SimpleJson {
+public class SimpleJson implements TestJson {
 
+    public String getName() {
+        return "JSON.simple";
+    }
 
-    public static List<Map> parsePublicTimeline(InputStream inputStream) {
+    public List<Map> parsePublicTimeline(InputStream inputStream) {
 
         List<Map> result = new ArrayList<Map>();
 

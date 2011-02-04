@@ -11,9 +11,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GsonJson {
+public class GsonJson implements TestJson {
 
-    public static List<Map> parsePublicTimeline(InputStream inputStream) {
+    public String getName() {
+        return "Gson";
+    }
+
+    public List<Map> parsePublicTimeline(InputStream inputStream) {
 
         List<Map> result = new ArrayList<Map>();
 

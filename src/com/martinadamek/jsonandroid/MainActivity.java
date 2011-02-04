@@ -2,88 +2,95 @@ package com.martinadamek.jsonandroid;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends Activity {
 
+    private static final String TAG = MainActivity.class.getName();
+
+    private LinearLayout mLayout;
+    private LinearLayout.LayoutParams mLayoutParams;
+    private String mPath;
+
+    private final Runnable mTestTask = new Runnable() {
+        public void run() {
+
+            final Map<String, Long> results = new HashMap<String, Long>();
+
+            TestJson testJson = new AndroidJson();
+            long duration = test(testJson);
+            results.put(testJson.getName(), duration);
+
+            testJson = new SimpleJson();
+            duration = test(testJson);
+            results.put(testJson.getName(), duration);
+
+            testJson = new GsonJson();
+            duration = test(testJson);
+            results.put(testJson.getName(), duration);
+
+            testJson = new JacksonJson();
+            duration = test(testJson);
+            results.put(testJson.getName(), duration);
+
+            runOnUiThread(new Runnable() {
+                public void run() {
+
+                    mLayout.removeAllViews();
+
+                    for (Map.Entry<String, Long> entry: results.entrySet()) {
+                        TextView textView = new TextView(MainActivity.this);
+                        textView.setText(entry.getKey() + ": " + entry.getValue() + "ms");
+                        mLayout.addView(textView, mLayoutParams);
+                    }
+
+                }
+            });
+
+        }
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.main);
 
-        LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+        mLayout = (LinearLayout) findViewById(R.id.layout);
+        mLayoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.FILL_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
 
-        String path = "com/martinadamek/jsonandroid/public_timeline.json";
+        mPath = "com/martinadamek/jsonandroid/public_timeline.json";
 
-        // Android built-in ============================================================
+        TextView textView = new TextView(MainActivity.this);
+        textView.setText("Running tests...");
+        mLayout.addView(textView, mLayoutParams);
 
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(path);
+        new Thread(mTestTask).start();
+
+    }
+
+    public long test(final TestJson testJson) {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
 
         long start = System.currentTimeMillis();
-        List<Map> result = AndroidJson.parsePublicTimeline(inputStream);
+        List<Map> result = testJson.parsePublicTimeline(inputStream);
         long end = System.currentTimeMillis();
 
         verify(result);
 
-        TextView textView = new TextView(this);
-        textView.setText("android built-in: " + (end - start) + "ms");
-        layout.addView(textView, layoutParams);
-
-        // json-simple =================================================================
-
-        inputStream = getClass().getClassLoader().getResourceAsStream(path);
-
-        start = System.currentTimeMillis();
-        result = SimpleJson.parsePublicTimeline(inputStream);
-        end = System.currentTimeMillis();
-
-        verify(result);
-
-        textView = new TextView(this);
-        textView.setText("simple-json: " + (end - start) + "ms");
-        layout.addView(textView, layoutParams);
-
-        // jackson =====================================================================
-
-        inputStream = getClass().getClassLoader().getResourceAsStream(path);
-
-        start = System.currentTimeMillis();
-        result = JacksonJson.parsePublicTimeline(inputStream);
-        end = System.currentTimeMillis();
-
-        verify(result);
-
-        textView = new TextView(this);
-        textView.setText("jackson: " + (end - start) + "ms");
-        layout.addView(textView, layoutParams);
-
-        // gson =========================================================================
-
-        inputStream = getClass().getClassLoader().getResourceAsStream(path);
-
-        start = System.currentTimeMillis();
-        result = GsonJson.parsePublicTimeline(inputStream);
-        end = System.currentTimeMillis();
-
-        verify(result);
-
-        textView = new TextView(this);
-        textView.setText("gson: " + (end - start) + "ms");
-        layout.addView(textView, layoutParams);
-
+        return end - start;
     }
 
-    static void verify(List<Map> result) {
+    private static void verify(List<Map> result) {
         if (result.size() != 20) {
             throw new IllegalStateException("Expected 20 but was " + result.size());
         }
@@ -95,7 +102,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    static String map2json(Map map) {
+    private static String map2json(Map map) {
         StringBuilder sb = new StringBuilder("{");
 
         for (Object key: map.keySet()) {
