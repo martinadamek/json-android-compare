@@ -53,9 +53,10 @@ public class AndroidJson implements TestJson {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         InputStream in = new BufferedInputStream(inputStream);
         byte[] buffer = new byte[1024];
+        int n = 0;
         try {
-            while (in.read(buffer) != -1) {
-                out.write(buffer);
+            while (-1 != (n = in.read(buffer))) {
+                out.write(buffer, 0, n);
             }
         } finally {
             out.close();
