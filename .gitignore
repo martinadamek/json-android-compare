@@ -35,6 +35,8 @@ Thumbs.db
 
 # android/idea
 out
+bin
+gen/*
 
 .idea/workspace.xml
 
