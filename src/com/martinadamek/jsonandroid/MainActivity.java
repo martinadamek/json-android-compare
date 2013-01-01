@@ -25,6 +25,8 @@ public class MainActivity extends Activity {
             testImpl(new SimpleJson(), results);
             testImpl(new GsonJson(), results);
             testImpl(new JacksonJson(), results);
+            testImpl(new JacksonObjectMapperJson(), results);
+            
 
             runOnUiThread(new Runnable() {
                 public void run() {
@@ -110,9 +112,16 @@ public class MainActivity extends Activity {
         }
         for (Map map: result) {
             if (map.size() != 52) {
-                throw new IllegalStateException("Expected 52 but was " + result.size());
+                Object user = map.get("user");
+                if (user instanceof Map) {
+                	Map userMap = (Map)user;
+                	if (userMap.size() != 34) {
+                     	throw new IllegalStateException("Expected 34 but was " + userMap.size());
+                	}
+                 } else {
+                	throw new IllegalStateException("Expected 52 but was " + result.size());
+                }
             }
-
         }
     }
 
