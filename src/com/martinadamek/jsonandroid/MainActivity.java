@@ -8,19 +8,15 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
-
-    private LinearLayout mLayout;
-    private LinearLayout.LayoutParams mLayoutParams;
     private String mPath;
-
+    private TextView mTextView;
+    
     private final Runnable mTestTask = new Runnable() {
         public void run() {
 
@@ -34,19 +30,15 @@ public class MainActivity extends Activity {
             
             runOnUiThread(new Runnable() {
                 public void run() {
-
-                    mLayout.removeAllViews();
-
+                	writeToTextView("== Done!");
+                	writeToTextView("\n");
+                	
                     List<String> keys = new ArrayList<String>(results.keySet());
                     Collections.sort(keys);
 
                     for (String key: keys) {
-                        TextView textView = new TextView(MainActivity.this);
-                        textView.setTypeface(Typeface.MONOSPACE);
-                        textView.setText(key + ": " + results.get(key) + "ms");
-                        mLayout.addView(textView, mLayoutParams);
+                    	writeToTextView(padRight(key, 12) + ": " + results.get(key) + "ms");
                     }
-
                 }
             });
 
@@ -59,40 +51,16 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.main);
 
-        mLayout = (LinearLayout) findViewById(R.id.layout);
-        mLayoutParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.FILL_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-
+        mTextView = (TextView) findViewById(R.id.text);
+        
         mPath = "com/martinadamek/jsonandroid/public_timeline.json";
 
-        TextView textView = new TextView(MainActivity.this);
-        textView.setText("Running tests...");
-        mLayout.addView(textView, mLayoutParams);
-
+        mTextView.setText("Running tests...");
+        writeToTextView("-----------------");
+        
         new Thread(mTestTask).start();
-
     }
-
-    private void testImpl(TestJson testJson, Map<String, Long> results) {
-        warmUp(testJson);
-        long duration = test(testJson, 1);
-        results.put("[1 run]    " + testJson.getName(), duration);
-        duration = test(testJson, 5);
-        results.put("[5 runs]   " + testJson.getName(), duration);
-        duration = test(testJson, 100);
-        results.put("[100 runs] " + testJson.getName(), duration);
-    }
-
-    private void warmUp(final TestJson testJson) {
-        InputStream inputStream;
-        for (int i = 0; i < 5; i++) {
-            inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
-            testJson.parsePublicTimeline(inputStream);
-        }
-    }
-
+    
     private long test(final TestJson testJson, int repeats) {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
 
@@ -110,17 +78,35 @@ public class MainActivity extends Activity {
 
         return duration;
     }
-
-    private static void verify(List<Map> result) {
-        if (result.size() != 20) {
-            throw new IllegalStateException("Expected 20 but was " + result.size());
-        }
-        for (Map map: result) {
-            if (map.size() != 52) {
-                throw new IllegalStateException("Expected 52 but was " + result.size());
+    
+    private void testImpl(final TestJson testJson, Map<String, Long> results) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+            	writeToTextView("== Running tests for '" + testJson.getName() + "'");
             }
+        });
+        
+        warmUp(testJson);
+                
+        long duration = test(testJson, 1);
+        results.put("[1 run]    " + testJson.getName(), duration);
+        duration = test(testJson, 5);
+        results.put("[5 runs]   " + testJson.getName(), duration);
+        duration = test(testJson, 100);
+        results.put("[100 runs] " + testJson.getName(), duration);
+    }
 
+    private void warmUp(final TestJson testJson) {
+        InputStream inputStream;
+        for (int i = 0; i < 5; i++) {
+            inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+            testJson.parsePublicTimeline(inputStream);
         }
+    }
+
+    private void writeToTextView(String text){
+    	mTextView.append("\n");
+    	mTextView.append(text);
     }
 
     private static String map2json(Map map) {
@@ -132,6 +118,22 @@ public class MainActivity extends Activity {
 
         sb.append("}");
         return sb.toString();
+    }
+
+    private static String padRight(String s, int n) {
+        return String.format("%1$-" + n + "s", s);  
+   }
+
+    private static void verify(List<Map> result) {
+        if (result.size() != 20) {
+            throw new IllegalStateException("Expected 20 but was " + result.size());
+        }
+        for (Map map: result) {
+            if (map.size() != 52) {
+                throw new IllegalStateException("Expected 52 but was " + result.size());
+            }
+
+        }
     }
 
 }

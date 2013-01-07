@@ -6,4 +6,16 @@
     android:orientation="vertical"
     android:padding="10dp" >
 
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:fillViewport="true">
+
+        <TextView
+            android:id="@+id/text"
+            android:typeface="monospace"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+    </ScrollView>
+
 </LinearLayout>
