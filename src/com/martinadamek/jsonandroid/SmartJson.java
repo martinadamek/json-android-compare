@@ -22,7 +22,7 @@ public class SmartJson implements TestJson {
 
 		List<Map> result = new ArrayList<Map>();
 
-		JSONParser p = new JSONParser(JSONParser.MODE_PERMISSIVE);
+		JSONParser p = new JSONParser(JSONParser.MODE_JSON_SIMPLE);
 
 		try {
 			Map map;
