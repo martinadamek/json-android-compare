@@ -1,12 +1,17 @@
 package com.martinadamek.jsonandroid;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import android.app.Activity;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import java.io.InputStream;
-import java.util.*;
 
 public class MainActivity extends Activity {
 
@@ -23,9 +28,10 @@ public class MainActivity extends Activity {
 
             testImpl(new AndroidJson(), results);
             testImpl(new SimpleJson(), results);
+            testImpl(new SmartJson(), results);
             testImpl(new GsonJson(), results);
             testImpl(new JacksonJson(), results);
-
+            
             runOnUiThread(new Runnable() {
                 public void run() {
 
@@ -36,6 +42,7 @@ public class MainActivity extends Activity {
 
                     for (String key: keys) {
                         TextView textView = new TextView(MainActivity.this);
+                        textView.setTypeface(Typeface.MONOSPACE);
                         textView.setText(key + ": " + results.get(key) + "ms");
                         mLayout.addView(textView, mLayoutParams);
                     }
@@ -71,9 +78,9 @@ public class MainActivity extends Activity {
     private void testImpl(TestJson testJson, Map<String, Long> results) {
         warmUp(testJson);
         long duration = test(testJson, 1);
-        results.put("[1 run] " + testJson.getName(), duration);
+        results.put("[1 run]    " + testJson.getName(), duration);
         duration = test(testJson, 5);
-        results.put("[5 runs] " + testJson.getName(), duration);
+        results.put("[5 runs]   " + testJson.getName(), duration);
         duration = test(testJson, 100);
         results.put("[100 runs] " + testJson.getName(), duration);
     }
