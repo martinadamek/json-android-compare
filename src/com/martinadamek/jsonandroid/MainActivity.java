@@ -59,6 +59,8 @@ public class MainActivity extends Activity {
 					final String label  = "Runs: ";
 					
 					int runs = -1;
+					String perRun;
+					
 					for (String key: keys) {
 						result = results.get(key);
 
@@ -70,14 +72,15 @@ public class MainActivity extends Activity {
 							runs = result.getTestRepeats();
 						}
 						
+						perRun = " (" + result.getDuration() / result.getTestRepeats() + "ms/run)";
+						
 						writeToTextView(
 								DATA_LINE_PADDING + 
 								StringUtils.padRight(result.getParserName(), minKeyLength) + 
 								": " + 
 								StringUtils.padLeft(String.valueOf(result.getDuration()), minValueLength) +
-								"ms");
-						
-						writeToTextView(DATA_LINE_PADDING + StringUtils.padRight(" ", minKeyLength) + " " + (result.getDuration() / result.getTestRepeats()) + "/run");						
+								"ms" +
+								perRun);					
 					}
 				}
 			});
