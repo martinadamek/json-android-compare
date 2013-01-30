@@ -1,5 +1,6 @@
 package com.martinadamek.jsonandroid;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,16 +9,19 @@ import java.util.List;
 import java.util.Map;
 
 import android.app.Activity;
+import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
+	private static final String ASSET_TWITTER_TIMELINE = "public_timeline.json";
 	private static final String DATA_LINE_PADDING = "  ";
-	
 	private static final String TAG = MainActivity.class.getName();
-	private String mPath;
+	
 	private TextView mTextView;
-
+	private AssetManager mAssetsManager;
+	
 	private final Runnable mTestTask = new Runnable() {
 		public void run() {
 
@@ -91,21 +95,32 @@ public class MainActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		setContentView(R.layout.main);
 
 		mTextView = (TextView) findViewById(R.id.text);
-
-		mPath = "com/martinadamek/jsonandroid/public_timeline.json";
-
-		mTextView.setText("Running tests...");
+		mAssetsManager = getAssets();
+		
+		mTextView.setText("Running tests (API Level: " +  android.os.Build.VERSION.SDK_INT + ")..." );
 		writeToTextView("-----------------");
 
 		new Thread(mTestTask).start();
 	}
 
+	private InputStream getAssetStream(String assetName){
+		InputStream res;
+		
+		try {
+			res = mAssetsManager.open( assetName );
+		} catch (IOException e) {
+			Log.e(TAG, "ERROR opening asset '" + assetName + "': " + e.getMessage(), e);
+			res = null;
+		}
+		
+		return res;
+	}
+	
 	private long test(final TestJson testJson, int repeats) {
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+		InputStream inputStream = getAssetStream(ASSET_TWITTER_TIMELINE);
 
 		List<Map> result = testJson.parsePublicTimeline(inputStream);
 		verify(result);
@@ -113,7 +128,7 @@ public class MainActivity extends Activity {
 		long duration = 0;
 
 		for (int i = 0; i < repeats; i++) {
-			inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+			inputStream = getAssetStream(ASSET_TWITTER_TIMELINE);
 			long start = System.currentTimeMillis();
 			testJson.parsePublicTimeline(inputStream);
 			duration += (System.currentTimeMillis() - start);
@@ -147,7 +162,7 @@ public class MainActivity extends Activity {
 	private void warmUp(final TestJson testJson) {
 		InputStream inputStream;
 		for (int i = 0; i < 5; i++) {
-			inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+			inputStream = getAssetStream(ASSET_TWITTER_TIMELINE);
 			testJson.parsePublicTimeline(inputStream);
 		}
 	}
