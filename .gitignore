@@ -38,3 +38,5 @@ out
 
 .idea/workspace.xml
 
+/gen
+/bin

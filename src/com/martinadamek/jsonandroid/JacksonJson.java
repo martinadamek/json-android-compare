@@ -1,15 +1,15 @@
 package com.martinadamek.jsonandroid;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
 
 public class JacksonJson implements TestJson {
 
@@ -24,22 +24,26 @@ public class JacksonJson implements TestJson {
         List<Map> result = new ArrayList<Map>();
 
         try {
+        	Map map;
+        	String key;
+        	String key2;
+        	
             JsonParser p = sJsonFactory.createJsonParser(inputStream);
 
             p.nextToken();
 
             while (p.nextToken() != JsonToken.END_ARRAY) {
 
-                Map map = new HashMap();
+                map = new HashMap();
 
                 while (p.nextToken() != JsonToken.END_OBJECT) {
 
-                    String key = p.getCurrentName();
+                    key = p.getCurrentName();
                     p.nextToken(); // move to value, or START_OBJECT/START_ARRAY
 
                     if (p.getCurrentToken() == JsonToken.START_OBJECT) {
                         while (p.nextToken() != JsonToken.END_OBJECT) {
-                            String key2 = p.getCurrentName();
+                            key2 = p.getCurrentName();
                             p.nextToken(); // move to value, or START_OBJECT/START_ARRAY
                             map.put("user." + key2, p.getText());
                         }
