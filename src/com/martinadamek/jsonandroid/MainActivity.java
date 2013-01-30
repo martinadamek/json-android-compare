@@ -12,128 +12,158 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
+	private static final String DATA_LINE_PADDING = "  ";
+	
+	private static final String TAG = MainActivity.class.getName();
+	private String mPath;
+	private TextView mTextView;
 
-    private static final String TAG = MainActivity.class.getName();
-    private String mPath;
-    private TextView mTextView;
-    
-    private final Runnable mTestTask = new Runnable() {
-        public void run() {
+	private final Runnable mTestTask = new Runnable() {
+		public void run() {
 
-            final Map<String, Long> results = new HashMap<String, Long>();
+			final Map<String, ResultsContainer> results = new HashMap<String, ResultsContainer>();
 
-            testImpl(new AndroidJson(), results);
-            testImpl(new SimpleJson(), results);
-            testImpl(new SmartJson(), results);
-            testImpl(new GsonJson(), results);
-            testImpl(new JacksonJson(), results);
-            
-            runOnUiThread(new Runnable() {
-                public void run() {
-                	writeToTextView("== Done!");
-                	writeToTextView("\n");
-                	
-                    List<String> keys = new ArrayList<String>(results.keySet());
-                    Collections.sort(keys);
+			testImpl(new AndroidJson(), results);
+			testImpl(new SimpleJson(), results);
+			testImpl(new SmartJson(), results);
+			testImpl(new GsonJson(), results);
+			testImpl(new JacksonJson(), results);
 
-                    for (String key: keys) {
-                    	writeToTextView(padRight(key, 12) + ": " + results.get(key) + "ms");
-                    }
-                }
-            });
+			runOnUiThread(new Runnable() {
+				public void run() {
+					writeToTextView("== Done!");
 
-        }
-    };
+					List<String> keys = new ArrayList<String>(results.keySet());
+					Collections.sort(keys);
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.main);
+					int minKeyLength = 0;
+					for (String key: keys) {
+						int length = String.valueOf(results.get(key).getParserName()).length();
 
-        mTextView = (TextView) findViewById(R.id.text);
-        
-        mPath = "com/martinadamek/jsonandroid/public_timeline.json";
+						if(length > minKeyLength){
+							minKeyLength = length;
+						}
+					}
 
-        mTextView.setText("Running tests...");
-        writeToTextView("-----------------");
-        
-        new Thread(mTestTask).start();
-    }
-    
-    private long test(final TestJson testJson, int repeats) {
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+					int minValueLength = 0;
+					for (String key: keys) {
+						int length = String.valueOf(results.get(key).getDuration()).length();
 
-        List<Map> result = testJson.parsePublicTimeline(inputStream);
-        verify(result);
+						if(length > minValueLength){
+							minValueLength = length;
+						}
+					}
 
-        long duration = 0;
+					ResultsContainer result;
+					final String label  = "Runs: ";
+					
+					int runs = -1;
+					for (String key: keys) {
+						result = results.get(key);
 
-        for (int i = 0; i < repeats; i++) {
-            inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
-            long start = System.currentTimeMillis();
-            testJson.parsePublicTimeline(inputStream);
-            duration += (System.currentTimeMillis() - start);
-        }
+						if(runs != result.getTestRepeats()){
+							writeToTextView(
+									"\n" +
+									label + result.getTestRepeats());
+							
+							runs = result.getTestRepeats();
+						}
+						
+						writeToTextView(
+								DATA_LINE_PADDING + 
+								StringUtils.padRight(result.getParserName(), minKeyLength) + 
+								": " + 
+								StringUtils.padLeft(String.valueOf(result.getDuration()), minValueLength) +
+								"ms");
+						
+						writeToTextView(DATA_LINE_PADDING + StringUtils.padRight(" ", minKeyLength) + " " + (result.getDuration() / result.getTestRepeats()) + "/run");						
+					}
+				}
+			});
 
-        return duration;
-    }
-    
-    private void testImpl(final TestJson testJson, Map<String, Long> results) {
-        runOnUiThread(new Runnable() {
-            public void run() {
-            	writeToTextView("== Running tests for '" + testJson.getName() + "'");
-            }
-        });
-        
-        warmUp(testJson);
-                
-        long duration = test(testJson, 1);
-        results.put("[1 run]    " + testJson.getName(), duration);
-        duration = test(testJson, 5);
-        results.put("[5 runs]   " + testJson.getName(), duration);
-        duration = test(testJson, 100);
-        results.put("[100 runs] " + testJson.getName(), duration);
-    }
+		}
+	};
 
-    private void warmUp(final TestJson testJson) {
-        InputStream inputStream;
-        for (int i = 0; i < 5; i++) {
-            inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
-            testJson.parsePublicTimeline(inputStream);
-        }
-    }
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-    private void writeToTextView(String text){
-    	mTextView.append("\n");
-    	mTextView.append(text);
-    }
+		setContentView(R.layout.main);
 
-    private static String map2json(Map map) {
-        StringBuilder sb = new StringBuilder("{");
+		mTextView = (TextView) findViewById(R.id.text);
 
-        for (Object key: map.keySet()) {
-            sb.append('"').append(key).append('"').append(':').append('"').append(map.get(key)).append('"').append(",");
-        }
+		mPath = "com/martinadamek/jsonandroid/public_timeline.json";
 
-        sb.append("}");
-        return sb.toString();
-    }
+		mTextView.setText("Running tests...");
+		writeToTextView("-----------------");
 
-    private static String padRight(String s, int n) {
-        return String.format("%1$-" + n + "s", s);  
-   }
+		new Thread(mTestTask).start();
+	}
 
-    private static void verify(List<Map> result) {
-        if (result.size() != 20) {
-            throw new IllegalStateException("Expected 20 but was " + result.size());
-        }
-        for (Map map: result) {
-            if (map.size() != 52) {
-                throw new IllegalStateException("Expected 52 but was " + result.size());
-            }
+	private long test(final TestJson testJson, int repeats) {
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
 
-        }
-    }
+		List<Map> result = testJson.parsePublicTimeline(inputStream);
+		verify(result);
+
+		long duration = 0;
+
+		for (int i = 0; i < repeats; i++) {
+			inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+			long start = System.currentTimeMillis();
+			testJson.parsePublicTimeline(inputStream);
+			duration += (System.currentTimeMillis() - start);
+		}
+
+		return duration;
+	}
+
+	private void testImpl(final TestJson testJson, Map<String, ResultsContainer> results) {
+		runOnUiThread(new Runnable() {
+			public void run() {
+				writeToTextView("== Testing '" + testJson.getName() + "'");
+			}
+		});
+
+		warmUp(testJson);
+
+		int runs = 1;
+		long duration = test(testJson, runs);
+		results.put(StringUtils.padLeft(runs, 5) + "_" + testJson.getName(), new ResultsContainer(testJson.getName(), duration, runs));
+		
+		runs = 5;
+		duration = test(testJson, runs);
+		results.put(StringUtils.padLeft(runs, 5) + "_" +  testJson.getName(), new ResultsContainer(testJson.getName(), duration, runs));
+		
+		runs = 100;
+		duration = test(testJson, runs);
+		results.put(StringUtils.padLeft(runs, 5) + "_" + testJson.getName(), new ResultsContainer(testJson.getName(), duration, runs));
+	}
+
+	private void warmUp(final TestJson testJson) {
+		InputStream inputStream;
+		for (int i = 0; i < 5; i++) {
+			inputStream = getClass().getClassLoader().getResourceAsStream(mPath);
+			testJson.parsePublicTimeline(inputStream);
+		}
+	}
+
+	private void writeToTextView(String text){
+		mTextView.append("\n");
+		mTextView.append(text);
+	}
+
+	private static void verify(List<Map> result) {
+		if (result.size() != 20) {
+			throw new IllegalStateException("Expected 20 but was " + result.size());
+		}
+		for (Map map: result) {
+			if (map.size() != 52) {
+				throw new IllegalStateException("Expected 52 but was " + result.size());
+			}
+
+		}
+	}
 
 }
