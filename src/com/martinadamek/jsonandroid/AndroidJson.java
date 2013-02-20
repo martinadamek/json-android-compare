@@ -1,11 +1,17 @@
 package com.martinadamek.jsonandroid;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONTokener;
-
-import java.io.*;
-import java.util.*;
 
 public class AndroidJson implements TestJson {
 
@@ -18,21 +24,29 @@ public class AndroidJson implements TestJson {
         List<Map> result = new ArrayList<Map>();
 
         try {
-            String json = convertStreamToString(inputStream);
+            Map map;
+            JSONObject jsonObject;
+            JSONObject user;
+            Iterator iterator;
+            Iterator iterator2;
+            String key;
+            String key2;
+            
+        	String json = convertStreamToString(inputStream);
             JSONArray jsonArray = new JSONArray(json);
             int length = jsonArray.length();
-
+           
             for (int i = 0; i < length; i++) {
-                Map map = new HashMap();
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                Iterator iterator = jsonObject.keys();
+                map = new HashMap();
+                jsonObject = jsonArray.getJSONObject(i);
+                iterator = jsonObject.keys();
                 while (iterator.hasNext()) {
-                    String key = (String) iterator.next();
+                    key = (String) iterator.next();
                     if ("user".equals(key)) {
-                        JSONObject user = jsonObject.getJSONObject(key);
-                        Iterator iterator2 = user.keys();
+                        user = jsonObject.getJSONObject(key);
+                        iterator2 = user.keys();
                         while (iterator2.hasNext()) {
-                            String key2 = (String) iterator2.next();
+                            key2 = (String) iterator2.next();
                             map.put("user." + key2, user.get(key2));
                         }
                     } else {

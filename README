@@ -1,9 +1,0 @@
-This is Android demo project used to compare performance of various JSON parser implementations in my blog post.
-
-Right now it includes:
-- Android built-in: http://developer.android.com/reference/org/json/package-summary.html
-- JSON.simple: http://code.google.com/p/json-simple/
-- Jackson: http://jackson.codehaus.org/
-- Gson: http://code.google.com/p/google-gson/
-
-Results on my Nexus One and more information is available in my blog post at http://martinadamek.com

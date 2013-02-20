@@ -1,12 +1,16 @@
 package com.martinadamek.jsonandroid;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.*;
 
 public class SimpleJson implements TestJson {
 
@@ -20,18 +24,24 @@ public class SimpleJson implements TestJson {
 
         JSONParser p = new JSONParser();
         try {
+			Map map;
+			Set keys;
+			Set keys2;
+			JSONObject user;
+			JSONObject jsonObject;
+        	
             JSONArray jsonArray = (JSONArray) p.parse(new InputStreamReader(inputStream));
             int size = jsonArray.size();
 
             for (int i = 0; i < size; i++) {
-                Map map = new HashMap();
-                JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+                map = new HashMap();
+                jsonObject = (JSONObject) jsonArray.get(i);
 
-                Set keys = jsonObject.keySet();
+                keys = jsonObject.keySet();
                 for (Object key: keys) {
                     if ("user".equals(key)) {
-                        JSONObject user = (JSONObject) jsonObject.get(key);
-                        Set keys2 = user.keySet();
+                        user = (JSONObject) jsonObject.get(key);
+                        keys2 = user.keySet();
                         for (Object key2: keys2) {
                             map.put("user." + key2, user.get(key2));
                         }
