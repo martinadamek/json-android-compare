@@ -24,11 +24,11 @@ public class JacksonJson implements TestJson {
         List<Map> result = new ArrayList<Map>();
 
         try {
-        	Map map;
-        	String key;
-        	String key2;
-        	
-            JsonParser p = sJsonFactory.createJsonParser(inputStream);
+            Map map;
+            String key;
+            String key2;
+
+            JsonParser p = sJsonFactory.createParser(inputStream);
 
             p.nextToken();
 

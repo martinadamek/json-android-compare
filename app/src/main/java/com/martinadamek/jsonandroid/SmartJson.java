@@ -8,28 +8,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 
-public class SimpleJson implements TestJson {
+public class SmartJson implements TestJson {
 
     public String getName() {
-        return "JSON.simple";
+        return "JSON.smart";
     }
 
     public List<Map> parsePublicTimeline(InputStream inputStream) {
 
         List<Map> result = new ArrayList<Map>();
 
-        JSONParser p = new JSONParser();
+        JSONParser p = new JSONParser(JSONParser.MODE_JSON_SIMPLE);
+
         try {
-			Map map;
-			Set keys;
-			Set keys2;
-			JSONObject user;
-			JSONObject jsonObject;
-        	
+            Map map;
+            Set keys;
+            Set keys2;
+            JSONObject user;
+            JSONObject jsonObject;
+
             JSONArray jsonArray = (JSONArray) p.parse(new InputStreamReader(inputStream));
             int size = jsonArray.size();
 
